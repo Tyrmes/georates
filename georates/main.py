@@ -1,7 +1,8 @@
 import pandas as pd
 import numpy as np
 import gstools as gs
-
+import matplotlib.pyplot as plt
+from math import radians
 # %% Define values
 data = {
     "Well": [
@@ -37,11 +38,12 @@ X = "X"
 Y = "Y"
 H = "h"
 # Parameters of covariance model
-DIM = 2
-VAR = 2
-LEN_SCALE = 8
-ANGLES_TOL = np.pi / 16
-BANDWIDTH = 8
+dim = 2
+var = 2
+len_scale = 8
+angles_tol = np.pi / 16
+bandwidth = 8
+angles = radians(180)
 
 # Position (Lat, long)
 pos = df[[X, Y]].values.T
@@ -49,15 +51,19 @@ pos = df[[X, Y]].values.T
 field = df[H].values.T
 
 # Estimate the variogram
-emp_v = gs.vario_estimate(pos, field, latlon=True)
+bin_center, dir_vario = gs.vario_estimate(
+    pos, field, angles=angles, angles_tol=angles_tol, bandwidth=bandwidth
+)
 
 # Fit the variogram with a covariance model
-model = gs.Exponential(dim=DIM, var=VAR, len_scale=LEN_SCALE)
-model.fit_variogram(*emp_v, sill=np.var(field), nugget=True)
+model = gs.Gaussian(dim=dim, angles=angles)
+model.fit_variogram(bin_center, dir_vario)
 
 # Plot the fitting model
-ax = model.plot()
-ax.scatter(*emp_v, label="Empirical semivariogram")
+fig, ax = plt.subplots(1, 1, figsize=(8, 8))
+ax.scatter(bin_center, dir_vario, label="Empirical semivariogram")
+model.plot(ax=ax)
 ax.legend()
+plt.show()
 print(model)
 
