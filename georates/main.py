@@ -4,32 +4,12 @@ import gstools as gs
 import matplotlib.pyplot as plt
 from math import radians
 # %% Define values
-data = {
-    "Well": [
-        "P1",
-        "P2",
-        "P3",
-        "P4",
-        "P5",
-        "P6",
-        "P7",
-        "P8",
-        "P9",
-        "P10",
-        "P11",
-        "P12",
-        "P13",
-        "P14",
-        "P15",
-    ],
-    "X": [20, 0, 100, 260, 400, 150, 425, 260, 360, 450, 530, 520, 600, 600, 600],
-    "Y": [80, 600, 400, 230, 550, 200, 320, 520, 130, 0, 150, 430, 300, 550, 0],
-    "h": [20, 19, 21, 25, 30, 23, 35, 23, 28, 32, 45, 56, 48, 60, 43],
-}
-
-# %% Create dataframe
-df = pd.DataFrame(data)
-df.head()
+x = np.random.RandomState(123).rand(100) * 100
+y = np.random.RandomState(223).rand(100) * 100
+model = gs.Exponential(dim=2, var=2, len_scale=10)
+srf = gs.SRF(model, mean=0, seed=123)
+field = srf((x, y))
+print(field)
 
 #%% Create semivariogram
 
