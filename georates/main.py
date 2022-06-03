@@ -11,7 +11,7 @@ model = gs.Exponential(dim=2, var=2, len_scale=[10, 8], angles=[radians(130), ra
 srf = gs.SRF(model, mean=0, seed=123)
 # Thickness
 field = srf((x, y))
-field = np.where(field < 0, (field * -1), field)
+field = np.where(field < 0, 0, field)
 # Coordinates
 df = pd.DataFrame({'X': x, 'Y': y})
 
