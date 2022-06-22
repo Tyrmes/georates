@@ -103,3 +103,35 @@ ax2_im = ax2.imshow(
 ax2.set_title(f"Estimated Field Based on {n_wells} wells")
 fig.show()
 
+#%% Create multiple random realizations
+seed = gs.random.MasterRNG(4)
+#seed = np.random.multivariate_normal()
+ens_no = 4
+for i in range(ens_no):
+    new_srf(seed=seed(), store=[f"fld{i}", False, False])
+    
+fig, ax = plt.subplots(ens_no + 1, ens_no + 1, figsize=(8, 8))
+# plotting kwargs for scatter and image
+vmax = np.max(new_srf.all_fields)
+sc_kw = dict(c=vals, edgecolors="k", vmin=0, vmax=vmax)
+im_kw = dict(extent=2 * [0, 5], origin="lower", vmin=0, vmax=vmax)
+for i in range(ens_no):
+    # conditioned fields and conditions
+    ax[i + 1, 0].imshow(new_srf[i].T, **im_kw)
+    ax[i + 1, 0].scatter(*pos, **sc_kw)
+    ax[i + 1, 0].set_ylabel(f"Field {i}", fontsize=10)
+    ax[0, i + 1].imshow(new_srf[i].T, **im_kw)
+    ax[0, i + 1].scatter(*pos, **sc_kw)
+    ax[0, i + 1].set_title(f"Field {i}", fontsize=10)
+    # absolute differences
+    for j in range(ens_no):
+        ax[i + 1, j + 1].imshow(np.abs(new_srf[i] - new_srf[j]).T, **im_kw)
+
+# beautify plots
+ax[0, 0].axis("off")
+for a in ax.flatten():
+    a.set_xticklabels([]), a.set_yticklabels([])
+    a.set_xticks([]), a.set_yticks([])
+fig.subplots_adjust(wspace=0, hspace=0)
+fig.show()
+
