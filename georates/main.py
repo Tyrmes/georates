@@ -3,6 +3,9 @@ import numpy as np
 import gstools as gs
 import matplotlib.pyplot as plt
 from math import radians
+import geostatspy.GSLIB as GSLIB
+import geostatspy.geostats as geostats
+plt.style.use('bmh')
 # %% Creation of synthetic field
 # Generate random values
 seed = 123
@@ -21,7 +24,7 @@ field = srf.structured([x, y])
 field = np.where(field < 0, 0, field)
 
 #%% Creation of synthetic new wells
-n_wells = 50
+n_wells = 200
 # Define the random number generator
 rng = np.random.default_rng(seed)
 # Define X, Y random locations
@@ -40,6 +43,25 @@ x_col = "X"
 y_col = "Y"
 field_col = "FIELD"
 df_wells = pd.DataFrame({x_col: x_new, y_col: y_new, field_col: new_values})
+
+#Create a normalized variable for property
+
+df_wells['NProperty'], tvPor, tnsPor = geostats.nscore(df_wells, 'FIELD')
+
+#%% Spatial Continuity / Variogram Map
+vmap, npmap = geostats.varmapv(df_wells,'X','Y','NProperty',tmin=-999,tmax=999,nxlag=5,nylag=5,dxlag=5,dylag=5,minnp=1,isill=1)
+cmap = plt.cm.hsv
+#hsv
+
+plt.subplot(121)
+GSLIB.pixelplt_st(vmap,-575,575,-575,575,5.0,0,1.6,'Property Variogram Map','X(m)','Y(m)','Variogram',cmap)
+
+#plt.subplot(122)
+#GSLIB.pixelplt_st(npmap,-575,575,-575,575,50.0,0,900,'Nscore Porosity Variogram Map Number of Pairs','X(m)','Y(m)','Number of Pairs',cmap)
+
+plt.subplots_adjust(left=0.2, bottom=0.1, right=1.9, top=0.9, wspace=0.2, hspace=0.2)
+plt.show()
+
 #%% Create semivariogram
 # Parameters of covariance model
 dim = 2
