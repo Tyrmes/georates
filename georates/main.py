@@ -102,30 +102,35 @@ ax2_im = ax2.imshow(
 )
 ax2.set_title(f"Estimated Field Based on {n_wells} wells")
 fig.show()
-
+#%% Creating the field from the starting point again
+new_srf_2 = gs.CondSRF(krige)
+new_srf_2.set_pos((x, y), "structured")
 #%% Create multiple random realizations
 seed = gs.random.MasterRNG(4)
-#seed = np.random.multivariate_normal()
 ens_no = 4
 for i in range(ens_no):
-    new_srf(seed=seed(), store=[f"fld{i}", False, False])
+    new_srf_2(seed=seed(), store=[f"fld{i}", False, False])
     
 fig, ax = plt.subplots(ens_no + 1, ens_no + 1, figsize=(8, 8))
 # plotting kwargs for scatter and image
-vmax = np.max(new_srf.all_fields)
+vmax = np.max(new_srf_2.all_fields)
+# Get the limits in x and y directions
+xlim = (np.min(new_srf_2.pos[0]), np.max(new_srf_2.pos[0]))
+ylim = (np.min(new_srf_2.pos[1]), np.max(new_srf_2.pos[1]))
 sc_kw = dict(c=vals, edgecolors="k", vmin=0, vmax=vmax)
-im_kw = dict(extent=2 * [0, 5], origin="lower", vmin=0, vmax=vmax)
+im_kw = dict(extent=[*xlim, *ylim], origin="lower", vmin=0, vmax=vmax)
+
 for i in range(ens_no):
     # conditioned fields and conditions
-    ax[i + 1, 0].imshow(new_srf[i].T, **im_kw)
+    ax[i + 1, 0].imshow(new_srf_2[i].T, **im_kw)
     ax[i + 1, 0].scatter(*pos, **sc_kw)
     ax[i + 1, 0].set_ylabel(f"Field {i}", fontsize=10)
-    ax[0, i + 1].imshow(new_srf[i].T, **im_kw)
+    ax[0, i + 1].imshow(new_srf_2[i].T, **im_kw)
     ax[0, i + 1].scatter(*pos, **sc_kw)
     ax[0, i + 1].set_title(f"Field {i}", fontsize=10)
     # absolute differences
     for j in range(ens_no):
-        ax[i + 1, j + 1].imshow(np.abs(new_srf[i] - new_srf[j]).T, **im_kw)
+        ax[i + 1, j + 1].imshow(np.abs(new_srf_2[i] - new_srf_2[j]).T, **im_kw)
 
 # beautify plots
 ax[0, 0].axis("off")
