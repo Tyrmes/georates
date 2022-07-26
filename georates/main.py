@@ -139,4 +139,12 @@ for a in ax.flatten():
     a.set_xticks([]), a.set_yticks([])
 fig.subplots_adjust(wspace=0, hspace=0)
 fig.show()
+#%% New wells estimation
+well_1 = (30, 60)
+well_2 = (50, 90)
+x_new = [well_1[0], well_2[0]]
+y_new = [well_1[1], well_2[1]]
 
+#TODO Set position in new srf
+#TODO Get values for each well from srf
+#TODO Plot histogram of res propoerty for each well
