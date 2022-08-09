@@ -3,6 +3,7 @@ import numpy as np
 import gstools as gs
 import matplotlib.pyplot as plt
 from math import radians
+import seaborn as sns
 # %% Creation of synthetic field
 # Generate random values
 seed = 123
@@ -142,9 +143,48 @@ fig.show()
 #%% New wells estimation
 well_1 = (30, 60)
 well_2 = (50, 90)
-x_new = [well_1[0], well_2[0]]
-y_new = [well_1[1], well_2[1]]
+well_3 = (50, 70)
+well_4 = (70, 50)
+well_5 = (30, 30)
+#%% Loop over all the wells to extract the field value
+wells = [well_1, well_2, well_3, well_4, well_5]
+nw_dict = {f"well_{i}": well for i, well in enumerate(wells, start=1)}
+n = 100  # Generate the conditioned random field "n"times and extract the values
+# Make sure you use a seed so all the wells are created with the same random numbers
+srf_nw = gs.CondSRF(krige)
+well_results = {}
+for well_name, new_well in nw_dict.items():
+    # Set the position of conditioned random field to the new well
+    srf_nw.set_pos((new_well[0], new_well[1]), 'structured')
+    # Generate the "n" realizations
+    for i in range(n):
+        srf_nw(seed=seed(), store=[f"fld{i}", False, False])
+    # Extract the field values from the "n" realizations
+    well_prop = np.array([val[0][0] for val in srf_nw.all_fields])
+    # Store the results in the results dictionary with each well name
+    well_results[well_name] = well_prop
 
-#TODO Set position in new srf
-#TODO Get values for each well from srf
-#TODO Plot histogram of res propoerty for each well
+
+#%%
+df_wellresults = pd.DataFrame(well_results)
+df_wellresults.plot.kde()
+plt.show()
+
+#%% Plot New wells in field
+fig_oc, ax_oc = plt.subplots(1, 1, figsize=(8, 8))
+ax_oc.scatter(x=df_wells[x_col], y=df_wells[y_col], s=5, c="k")
+ax_oc_im = ax_oc.imshow(
+    new_srf["field"].T,
+    origin="lower",
+    vmin=0,
+    vmax=np.max(srf["field"].max()),
+    extent=[0, 100, 0, 100],
+    cmap="viridis",
+)
+ax_oc.set_title(f"Estimated Field Based on {n_wells} wells")
+
+for well_name, location in nw_dict.items():
+    ax_oc.scatter(location[0], location[1], c="r", s=50)
+    ax_oc.annotate(well_name, location)
+
+fig_oc.show()
