@@ -103,6 +103,7 @@ ax2_im = ax2.imshow(
 )
 ax2.set_title(f"Estimated Field Based on {n_wells} wells")
 fig.show()
+
 #%% Creating the field from the starting point again
 new_srf_2 = gs.CondSRF(krige)
 new_srf_2.set_pos((x, y), "structured")
