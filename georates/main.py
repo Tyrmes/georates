@@ -3,7 +3,6 @@ import numpy as np
 import gstools as gs
 import matplotlib.pyplot as plt
 from math import radians
-import seaborn as sns
 # %% Creation of synthetic field
 # Generate random values
 seed = 123
@@ -189,3 +188,8 @@ for well_name, location in nw_dict.items():
     ax_oc.annotate(well_name, location)
 
 fig_oc.show()
+
+#%% Create synthetic field
+my_synth_field = SyntheticField("oscar", 120, 1230, 430)
+my_synth_field.model = gs.Exponential(0.5)
+my_synth_field.generate_field()
