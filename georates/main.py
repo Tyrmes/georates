@@ -3,14 +3,16 @@ import numpy as np
 import gstools as gs
 import matplotlib.pyplot as plt
 from math import radians
+from georates.model.model import Well, SyntheticField
+
 # %% Creation of synthetic field
 # Generate random values
 seed = 123
 grid_resolution = 1
 min_loc, max_loc = 0, 100
 angle = radians(130)
-
 x = y = np.arange(min_loc, max_loc, grid_resolution)
+
 model = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=angle)
 # Since var is X and we will supress negative values, we need to move the mean so the
 # actual var value is reflected in the variogram.
@@ -73,7 +75,7 @@ new_srf()
 fig_3, ax_3 = plt.subplots(1, 1, figsize=(8, 8))
 ax_3.scatter(bin_center, dir_vario[0], label="Empirical semivariogram")
 ax_3.scatter(bin_center, dir_vario[1], label="Empirical semivariogram 2")
-model_fit.plot("vario_axis", axis=0, ax=ax_3, label='fit on axis 0')
+model_fit.plot("vario_axis", axis=0, ax=ax_3, label="fit on axis 0")
 model_fit.plot("vario_axis", axis=1, ax=ax_3, label="fit on axis 1")
 plt.show()
 #%%
@@ -111,7 +113,7 @@ seed = gs.random.MasterRNG(4)
 ens_no = 4
 for i in range(ens_no):
     new_srf_2(seed=seed(), store=[f"fld{i}", False, False])
-    
+
 fig, ax = plt.subplots(ens_no + 1, ens_no + 1, figsize=(8, 8))
 # plotting kwargs for scatter and image
 vmax = np.max(new_srf_2.all_fields)
@@ -155,7 +157,7 @@ srf_nw = gs.CondSRF(krige)
 well_results = {}
 for well_name, new_well in nw_dict.items():
     # Set the position of conditioned random field to the new well
-    srf_nw.set_pos((new_well[0], new_well[1]), 'structured')
+    srf_nw.set_pos((new_well[0], new_well[1]), "structured")
     # Generate the "n" realizations
     for i in range(n):
         srf_nw(seed=seed(), store=[f"fld{i}", False, False])
@@ -190,6 +192,16 @@ for well_name, location in nw_dict.items():
 fig_oc.show()
 
 #%% Create synthetic field
-my_synth_field = SyntheticField("oscar", 120, 1230, 430)
-my_synth_field.model = gs.Exponential(0.5)
-my_synth_field.generate_field()
+seed = 123
+grid_resolution = 1
+min_loc, max_loc = 0, 100
+angle = radians(130)
+mean = 10
+model = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=angle)
+
+synth_field = SyntheticField(
+    "auca", mean, seed, grid_resolution, (min_loc, max_loc), model, (0, None)
+)
+#%%
+synth_field.plot()
+plt.show()

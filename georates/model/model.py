@@ -1,6 +1,6 @@
 import numpy as np
 import gstools as gs
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 # %% Creation of synthetic field
 
@@ -42,51 +42,74 @@ class Well:
 
 # %%
 
+
 class SyntheticField:
-    def __init__(self,
-                 field_name: str,
-                 seed: int,
-                 grid_resolution: int,
-                 limits: Tuple[int, int],
-                 cov_model: gs.CovModel):
+    def __init__(
+        self,
+        field_name: str,
+        mean: float,
+        seed: int,
+        grid_resolution: int,
+        limits: Tuple[int, int],
+        cov_model: gs.CovModel,
+        trunc_limits: Tuple[Optional[float], Optional[float]] = (None, None),
+    ):
         """
         Create a synthetic field.
 
-        :param field_name:
-        :param seed:
-        :param grid_resolution:
-        :param limits:
-        :param cov_model:
-
+        Parameters
+        ----------
+        field_name
+        mean
+        seed
+        grid_resolution
+        limits
+        cov_model
         """
+
         self.field_name = field_name
         self.seed = seed
         self.grid_resolution = grid_resolution
         self.limits = limits
         self.cov_model = cov_model
+        self.mean = mean
+        self.trunc_limits = trunc_limits
+        # Private attributes
+        self.__xy: Optional[Tuple[np.ndarray, np.ndarray]] = None
+        self.field: Optional[np.ndarray] = None
 
-    def generate_points(self):
-        model
-        srf
+    # getter / setter
 
-    def create_model(self):
-        self.model = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=angle)
-        srf = gs.SRF(model, mean=10, seed=seed)
-        field = srf.structured([x, y])
-        field = np.where(field < 0, 0, field)
+    @property
+    def _xy(self) -> Tuple[np.ndarray, np.ndarray]:
+        if self.__xy is None:
+            self._generate_xy()
+        return self.__xy
+
+    @_xy.setter
+    def _xy(self, value: Tuple[np.ndarray, np.ndarray]):
+        raise ValueError("xy is a read-only attribute")
+
+    def _generate_xy(self):
+        x = y = np.arange(*self.limits, self.grid_resolution)
+        self.__xy = x, y
+
+    def generate_srf(self) -> np.ndarray:
+        srf = gs.SRF(self.cov_model, mean=self.mean, seed=self.seed)
+        field = srf.structured(self._xy)
+
+        field_lower_limit, field_upper_limit = self.trunc_limits
+
+        if field_lower_limit is not None:
+            field = np.where(field < field_lower_limit, field_lower_limit, field)
+
+        if field_upper_limit is not None:
+            field = np.where(field > field_upper_limit, field_upper_limit, field)
+
         return field
 
-# %%
-class SynthField:
-    def __int__(self, field_name: str, seed: int, grid_resolution: int,
-                limits: Tuple[int, int], angle: float):
-        self.field_name = field_name
-        self.seed = seed
-        self.grid_resolution = grid_resolution
-        self.limits = limits
-        self.angle = angle
+    def plot_field(self):
+        pass
 
-    def model(self):
-        model = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angle= self.angle)
 
 
