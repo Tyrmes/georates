@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.image import AxesImage
 import gstools as gs
 from typing import List, Tuple, Optional
 
