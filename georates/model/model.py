@@ -40,9 +40,6 @@ class Well:
         print(f"{self.well_name} is producing")
 
 
-# %%
-
-
 class SyntheticField:
     def __init__(
         self,
@@ -60,11 +57,19 @@ class SyntheticField:
         Parameters
         ----------
         field_name
+            Name of the field.
         mean
+            Mean of the field to be used in the generation of the field.
         seed
+            Seed for the random number generator.
         grid_resolution
+            Resolution of the grid
         limits
+            Lower and upper (x, y) limits of the field grid
         cov_model
+            Covariance model to be used in the generation of the field.
+        trunc_limits
+            Lower and upper limits of the field properties values.
         """
 
         self.field_name = field_name
@@ -76,25 +81,25 @@ class SyntheticField:
         self.trunc_limits = trunc_limits
         # Private attributes
         self.__xy: Optional[Tuple[np.ndarray, np.ndarray]] = None
-        self.field: Optional[np.ndarray] = None
-
-    # getter / setter
+        self._field: Optional[np.ndarray] = None
 
     @property
     def _xy(self) -> Tuple[np.ndarray, np.ndarray]:
         if self.__xy is None:
-            self._generate_xy()
+            self.__xy = self._generate_xy()
         return self.__xy
 
-    @_xy.setter
-    def _xy(self, value: Tuple[np.ndarray, np.ndarray]):
-        raise ValueError("xy is a read-only attribute")
+    @property
+    def field(self) -> np.ndarray:
+        if self._field is None:
+            self._field = self._generate_srf()
+        return self._field
 
-    def _generate_xy(self):
+    def _generate_xy(self) -> Tuple[np.ndarray, np.ndarray]:
         x = y = np.arange(*self.limits, self.grid_resolution)
-        self.__xy = x, y
+        return x, y
 
-    def generate_srf(self) -> np.ndarray:
+    def _generate_srf(self) -> np.ndarray:
         srf = gs.SRF(self.cov_model, mean=self.mean, seed=self.seed)
         field = srf.structured(self._xy)
 
@@ -108,8 +113,20 @@ class SyntheticField:
 
         return field
 
-    def plot_field(self):
-        pass
+    def plot_field(
+        self, figsize=(8, 8), cmap="viridis", show_plot=True
+    ) -> Tuple[plt.Figure, plt.Axes, AxesImage]:
+        fig, ax = plt.subplots(1, 1, figsize=figsize)
+        ax_im = ax.imshow(
+            self.field.T,
+            origin="lower",
+            vmin=self.trunc_limits[0],
+            vmax=self.trunc_limits[1],
+            extent=[*self.limits, *self.limits],
+            cmap=cmap,
+        )
 
+        if show_plot:
+            fig.show()
 
-
+        return fig, ax, ax_im

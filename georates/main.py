@@ -203,5 +203,9 @@ synth_field = SyntheticField(
     "auca", mean, seed, grid_resolution, (min_loc, max_loc), model, (0, None)
 )
 #%%
-synth_field.plot()
+fig, ax, axim = synth_field.plot_field(show_plot=False)
+ax.set_title("Synthetic Field")
+ax.set_xlabel("x")
+ax.set_ylabel("y")
+plt.tight_layout()
 plt.show()
