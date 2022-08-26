@@ -37,6 +37,7 @@ class Well:
     def __init__(self, well_name: str, location: Tuple[float, float]):
         self.well_name = well_name
         self.location = location
+        self.petro_value: Optional[float] = None
 
     def start_producing(self):
         print(f"{self.well_name} is producing")
