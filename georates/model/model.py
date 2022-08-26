@@ -83,6 +83,7 @@ class SyntheticField:
         self.trunc_limits = trunc_limits
         # Private attributes
         self.__xy: Optional[Tuple[np.ndarray, np.ndarray]] = None
+        self.__srf: Optional[gs.SRF] = None
         self._field: Optional[np.ndarray] = None
 
     @property
@@ -97,13 +98,18 @@ class SyntheticField:
             self._field = self._generate_srf()
         return self._field
 
+    @property
+    def _srf(self) -> gs.SRF:
+        if self.__srf is None:
+            self.__srf = gs.SRF(self.cov_model, mean=self.mean, seed=self.seed)
+        return self.__srf
+
     def _generate_xy(self) -> Tuple[np.ndarray, np.ndarray]:
         x = y = np.arange(*self.limits, self.grid_resolution)
         return x, y
 
     def _generate_srf(self) -> np.ndarray:
-        srf = gs.SRF(self.cov_model, mean=self.mean, seed=self.seed)
-        field = srf.structured(self._xy)
+        field = self._srf.structured(self._xy)
 
         field_lower_limit, field_upper_limit = self.trunc_limits
 
@@ -132,3 +138,33 @@ class SyntheticField:
             fig.show()
 
         return fig, ax, ax_im
+
+    def get_field_value_with_position(self, position: Tuple[float, float]) -> float:
+        self._srf.set_pos(position)
+        return self._srf()[0]
+
+
+class WellGenerator:
+    def __init__(self, field: SyntheticField, seed: int):
+        self.field = field
+        self.seed = seed
+
+    def generate_new_vertical_wells(self, n_wells: int) -> List[Well]:
+        rng = np.random.default_rng(self.seed)
+        min_loc, max_loc = self.field.limits
+
+        x_new = rng.integers(min_loc, max_loc, n_wells)
+        y_new = rng.integers(min_loc, max_loc, n_wells)
+
+        new_wells = []
+        for i, (xi, yi) in enumerate(zip(x_new, y_new)):
+            field_value = self.field.get_field_value_with_position((xi, yi))
+            field_value = field_value if field_value >= 0 else 0
+            well_name = f"well_{i}"
+            well = Well(well_name, (xi, yi))
+            well.petro_value = field_value
+            new_wells.append(well)
+
+        return new_wells
+
+

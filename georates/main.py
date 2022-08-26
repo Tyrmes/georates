@@ -191,21 +191,3 @@ for well_name, location in nw_dict.items():
 
 fig_oc.show()
 
-#%% Create synthetic field
-seed = 123
-grid_resolution = 1
-min_loc, max_loc = 0, 100
-angle = radians(130)
-mean = 10
-model = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=angle)
-
-synth_field = SyntheticField(
-    "auca", mean, seed, grid_resolution, (min_loc, max_loc), model, (0, None)
-)
-#%%
-fig, ax, axim = synth_field.plot_field(show_plot=False)
-ax.set_title("Synthetic Field")
-ax.set_xlabel("x")
-ax.set_ylabel("y")
-plt.tight_layout()
-plt.show()
