@@ -168,4 +168,56 @@ class WellGenerator:
 
         return new_wells
 
+class VariogramAnalysis:
+    def __init__(
+            self,
+            dim: int,
+            angle: float,
+            var: float,
+            len_scale: float,
+            angles_tol: float,
+            bandwidth: int,
+            wells: List[Well]
+    ):
+        self.dim = dim
+        self.angle = angle
+        self.var = var
+        self.len_scale = len_scale
+        self.angles_tol = angles_tol
+        self.bandwidth = bandwidth
+        self.wells = wells
+        self.__var_results: Optional[Tuple[np.ndarray, np.ndarray]] = None
+
+    @property
+    def _var_results(self) -> Tuple[np.ndarray, np.ndarray]:
+        if self.__var_results is None:
+            self.__var_results = self._calculate_variogram()
+        return self.__var_results
+
+    def _calculate_variogram(self):
+        x = []
+        y = []
+        vals = []
+        for well in self.wells:
+            x.append(well.location[0])
+            y.append(well.location[1])
+            vals.append(well.petro_value)
+
+        pos = [x, y]
+
+        bin_center, dir_vario = gs.vario_estimate(
+            pos,
+            vals,
+            direction=gs.rotated_main_axes(dim=self.dim, angles=self.angle),
+            angles_tol=self.angles_tol,
+            bandwidth=self.bandwidth
+        )
+
+        return bin_center, dir_vario
+
+
+
+
+
+
 
