@@ -184,6 +184,17 @@ class VariogramAnalysis:
         self.bandwidth = bandwidth
         self.wells = wells
         self.__var_results: Optional[Tuple[np.ndarray, np.ndarray]] = None
+        self._covmodel: Optional[gs.CovModel] = None
+
+    @property
+    def covmodel(self) -> gs.CovModel:
+        if self._covmodel is None:
+            raise ValueError("Covariance model not set")
+        return self._covmodel
+
+    @covmodel.setter
+    def covmodel(self, covmodel: gs.CovModel):
+        self._covmodel = covmodel
 
     @property
     def _var_results(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -223,6 +234,16 @@ class VariogramAnalysis:
             self.covmodel.plot("vario_axis", axis=1, ax=ax_1, label="fit on axis 1")
         if show_plot:
             fig_1.show()
+
+
+
+
+
+
+
+
+
+
 
 
 
