@@ -1,7 +1,8 @@
 from math import radians
 import gstools as gs
-from georates.model.model import Well, SyntheticField, WellGenerator
+from georates.model.model import Well, SyntheticField, WellGenerator, VariogramAnalysis
 import matplotlib.pyplot as plt
+import numpy as np
 #%% Create synthetic field
 seed = 123
 grid_resolution = 1
@@ -21,7 +22,16 @@ ax.set_ylabel("y")
 plt.tight_layout()
 plt.show()
 #%% Create synthetic wells
-n_wells = 50
+n_wells = 200
 seed_nw = 28
 well_generator = WellGenerator(synth_field, seed_nw)
 wells = well_generator.generate_new_vertical_wells(n_wells)
+#%% Define Variogram Analysis
+vario_analysis = VariogramAnalysis(2, angle, np.pi / 16, 8, wells)
+vario_analysis.plot_variogram(plot_model=False)
+plt.show()
+#%% Create covmodel
+model_exp = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=radians(180))
+vario_analysis.covmodel = model_exp
+vario_analysis.plot_variogram(plot_model=True)
+plt.show()

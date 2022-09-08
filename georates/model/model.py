@@ -168,21 +168,18 @@ class WellGenerator:
 
         return new_wells
 
+
 class VariogramAnalysis:
     def __init__(
             self,
             dim: int,
             angle: float,
-            var: float,
-            len_scale: float,
             angles_tol: float,
             bandwidth: int,
             wells: List[Well]
     ):
         self.dim = dim
         self.angle = angle
-        self.var = var
-        self.len_scale = len_scale
         self.angles_tol = angles_tol
         self.bandwidth = bandwidth
         self.wells = wells
@@ -194,7 +191,7 @@ class VariogramAnalysis:
             self.__var_results = self._calculate_variogram()
         return self.__var_results
 
-    def _calculate_variogram(self):
+    def _calculate_variogram(self) -> Tuple[np.ndarray, np.ndarray]:
         x = []
         y = []
         vals = []
