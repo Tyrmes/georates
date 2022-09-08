@@ -212,6 +212,18 @@ class VariogramAnalysis:
 
         return bin_center, dir_vario
 
+    def plot_variogram(self, plot_model=False, show_plot=False):
+        bin_center, dir_vario = self._var_results
+        fig_1, ax_1 = plt.subplots(1, 1, figsize=(8, 8))
+        ax_1.scatter(bin_center, dir_vario[0], label="Empirical semivariogram")
+        ax_1.scatter(bin_center, dir_vario[1], label="Empirical semivariogram 2")
+        # Plot covariance model
+        if plot_model:
+            self.covmodel.plot("vario_axis", axis=0, ax=ax_1, label="fit on axis 0")
+            self.covmodel.plot("vario_axis", axis=1, ax=ax_1, label="fit on axis 1")
+        if show_plot:
+            fig_1.show()
+
 
 
 
