@@ -189,18 +189,29 @@ class VariogramAnalysis:
     @property
     def covmodel(self) -> gs.CovModel:
         if self._covmodel is None:
-            raise ValueError("Covariance model not set")
-        return self._covmodel
+            self._covmodel = self._default_cov_model()
+            self._covmodel.dim = self.dim
+            self._covmodel.angle = np.array([self.angle])
+            return self._covmodel
+        else:
+            return self._covmodel
 
     @covmodel.setter
     def covmodel(self, covmodel: gs.CovModel):
         self._covmodel = covmodel
+        self._covmodel.dim = self.dim
+        self._covmodel.angle = np.array([self.angle])
+
+    def _default_cov_model(self):
+        model = gs.Exponential(self.dim, self.angle)
+        return model
 
     @property
     def _var_results(self) -> Tuple[np.ndarray, np.ndarray]:
         if self.__var_results is None:
             self.__var_results = self._calculate_variogram()
         return self.__var_results
+
 
     def _calculate_variogram(self) -> Tuple[np.ndarray, np.ndarray]:
         x = []
