@@ -266,7 +266,9 @@ class VariogramAnalysis:
         if show_plot:
             fig_1.show()
 
-    def fit_covmodel(self):
+    def fit_covmodel(self, covmodel: Optional[gs.CovModel] = None):
+        if covmodel is not None:
+            self.covmodel = covmodel
         self.covmodel.fit_variogram(*self._var_results)
         # * es para desempaquetar los datos de la funcion solo cuando lo usas dentro de una funcion
 

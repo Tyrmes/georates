@@ -28,14 +28,16 @@ well_generator = WellGenerator(synth_field, seed_nw)
 wells = well_generator.generate_new_vertical_wells(n_wells)
 #%% Define Variogram Analysis
 vario_analysis = VariogramAnalysis(2, angle, np.pi / 16, 8, wells)
-vario_analysis.plot_variogram(plot_model=False)
-plt.show()
-#%% Create covmodel
+# vario_analysis.plot_variogram(plot_model=False)
+# plt.show()
+# #%% Create covmodel
 model_exp = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=radians(180))
-vario_analysis.covmodel = model_exp
-vario_analysis.plot_variogram(plot_model=True)
-plt.show()
+model_gau = gs.Gaussian()
+#vario_analysis.covmodel = model_exp
+# vario_analysis.plot_variogram(plot_model=True)
+# plt.show()
 #%% Prueba fit
-vario_analysis.fit_covmodel()
+vario_analysis.fit_covmodel(gs.Gaussian())
 vario_analysis.plot_variogram(plot_model=True)
 plt.show()
+
