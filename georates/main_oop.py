@@ -35,3 +35,7 @@ model_exp = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=radians(180))
 vario_analysis.covmodel = model_exp
 vario_analysis.plot_variogram(plot_model=True)
 plt.show()
+#%% Prueba fit
+vario_analysis.fit_covmodel()
+vario_analysis.plot_variogram(plot_model=True)
+plt.show()

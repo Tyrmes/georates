@@ -6,7 +6,6 @@ from typing import List, Tuple, Optional
 
 # %% Creation of synthetic field
 
-
 # %% Create existing wells from synthetic field
 # %% Create semivariogram from wells
 # %% Fit covariance to wells
@@ -177,6 +176,9 @@ class VariogramAnalysis:
             angles_tol: float,
             bandwidth: int,
             wells: List[Well]
+            #Instance attributes
+            # (Atributos de la instancia y METODOS de la clase VariogramAnalisis)
+            # Metodos de la instancia llevan def(self)
     ):
         self.dim = dim
         self.angle = angle
@@ -185,6 +187,7 @@ class VariogramAnalysis:
         self.wells = wells
         self.__var_results: Optional[Tuple[np.ndarray, np.ndarray]] = None
         self._covmodel: Optional[gs.CovModel] = None
+        #Si no especifica modelo de cov -> seteas un modelo por default
 
     @property
     def covmodel(self) -> gs.CovModel:
@@ -201,6 +204,19 @@ class VariogramAnalysis:
         self._covmodel = covmodel
         self._covmodel.dim = self.dim
         self._covmodel.angle = np.array([self.angle])
+#Getter - Setter / Usuario obtenga la propiedad o defina la propiedad
+#Por que definir un setter necesito que sea un modelo de 2 dim de las
+    # mismas dimensiones del modelo de vario y el mismo angulo que el
+    # analisis de variograma
+    #Es para asegurarse que se utilice el dim y el angulo del caluclo del variogram analysis
+    # El doble underscore es para ni siquiera pycharm permita verla al usuario de codigo que alguien este utilizando
+    # name mandy?
+    # cuando defino propiedades siempre necesito un atributo interno
+    # para poder guardar la informacion
+#@propery - setter hace que el metodo sea especial
+    #el atributo se lo pone con under score cuando utilizamos el getter y setter
+    #el under score sirve para realizar operaciones internas
+    #Curso data camp
 
     def _default_cov_model(self):
         model = gs.Exponential(self.dim, self.angle)
@@ -249,6 +265,11 @@ class VariogramAnalysis:
             model_fit.plot("vario_axis", axis=1, ax=ax_1, label="fit on axis 1")
         if show_plot:
             fig_1.show()
+
+    def fit_covmodel(self):
+        self.covmodel.fit_variogram(*self._var_results)
+        # * es para desempaquetar los datos de la funcion solo cuando lo usas dentro de una funcion
+
 
 
 

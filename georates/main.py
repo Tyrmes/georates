@@ -12,8 +12,11 @@ grid_resolution = 1
 min_loc, max_loc = 0, 100
 angle = radians(130)
 x = y = np.arange(min_loc, max_loc, grid_resolution)
-
+# %% Modeling with random values
 model = gs.Exponential(dim=2, var=2, len_scale=[20, 8], angles=angle)
+# dim: Dimension of the model (1D, 2D, 3D)
+# var: variance of the model
+
 # Since var is X and we will supress negative values, we need to move the mean so the
 # actual var value is reflected in the variogram.
 srf = gs.SRF(model, mean=10, seed=seed)
