@@ -212,7 +212,6 @@ class VariogramAnalysis:
             self.__var_results = self._calculate_variogram()
         return self.__var_results
 
-
     def _calculate_variogram(self) -> Tuple[np.ndarray, np.ndarray]:
         x = []
         y = []
@@ -234,7 +233,7 @@ class VariogramAnalysis:
 
         return bin_center, dir_vario
 
-    def plot_variogram(self, plot_model=False, show_plot=False):
+    def plot_variogram(self, plot_model=False, show_plot=False, fit_model=False):
         bin_center, dir_vario = self._var_results
         fig_1, ax_1 = plt.subplots(1, 1, figsize=(8, 8))
         ax_1.scatter(bin_center, dir_vario[0], label="Empirical semivariogram")
@@ -243,6 +242,11 @@ class VariogramAnalysis:
         if plot_model:
             self.covmodel.plot("vario_axis", axis=0, ax=ax_1, label="fit on axis 0")
             self.covmodel.plot("vario_axis", axis=1, ax=ax_1, label="fit on axis 1")
+        elif fit_model:
+            model_fit = self.covmodel
+            model_fit.fit_variogram(bin_center, dir_vario)
+            model_fit.plot("vario_axis", axis=0, ax=ax_1, label="fit on axis 0")
+            model_fit.plot("vario_axis", axis=1, ax=ax_1, label="fit on axis 1")
         if show_plot:
             fig_1.show()
 
