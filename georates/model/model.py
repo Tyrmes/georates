@@ -4,6 +4,7 @@ from matplotlib.image import AxesImage
 import gstools as gs
 from typing import List, Tuple, Optional
 
+
 # %% Creation of synthetic field
 
 
@@ -45,14 +46,14 @@ class Well:
 
 class SyntheticField:
     def __init__(
-        self,
-        field_name: str,
-        mean: float,
-        seed: int,
-        grid_resolution: int,
-        limits: Tuple[int, int],
-        cov_model: gs.CovModel,
-        trunc_limits: Tuple[Optional[float], Optional[float]] = (None, None),
+            self,
+            field_name: str,
+            mean: float,
+            seed: int,
+            grid_resolution: int,
+            limits: Tuple[int, int],
+            cov_model: gs.CovModel,
+            trunc_limits: Tuple[Optional[float], Optional[float]] = (None, None),
     ):
         """
         Create a synthetic field.
@@ -123,7 +124,7 @@ class SyntheticField:
         return field
 
     def plot_field(
-        self, figsize=(8, 8), cmap="viridis", show_plot=True
+            self, figsize=(8, 8), cmap="viridis", show_plot=True
     ) -> Tuple[plt.Figure, plt.Axes, AxesImage]:
         fig, ax = plt.subplots(1, 1, figsize=figsize)
         ax_im = ax.imshow(
@@ -212,7 +213,6 @@ class VariogramAnalysis:
             self.__var_results = self._calculate_variogram()
         return self.__var_results
 
-
     def _calculate_variogram(self) -> Tuple[np.ndarray, np.ndarray]:
         x = []
         y = []
@@ -246,19 +246,40 @@ class VariogramAnalysis:
         if show_plot:
             fig_1.show()
 
+    def fit_covmodel(self, covmodel: Optional[gs.CovModel] = None):
+        if covmodel is not None:
+            self.covmodel = covmodel
+        self.covmodel.fit_variogram(*self._var_results)
 
 
+class RandomField:
+    def __init__(
+            self,
+            modelfit: gs.CovModel,
+            position: float,
+            propertyvalues: float,
+    ):
+        self.model_fit = None
+        self.modelfit = modelfit
+        self.position = position
+        self.propertyvalues = propertyvalues
 
+    @property
+    def _crf(self) -> gs.Krige:
+        # if self.__crf is None:
+        self.__crf = gs.Krige(self.model_fit, cond_pos=self.position,
+                                  cond_val=self.propertyvalues)
+        return self.__crf
 
-
-
-
-
-
-
-
-
-
-
-
-
+    # def create_random_field(self):
+    #     wells = self.new_wells
+    #     position = wells
+    #
+    #
+    #
+    #
+    #     #krige = gs.Krige(model, cond_pos=pos, cond_val=new_values)
+    #     #new_srf = gs.CondSRF(krige)
+    #     #new_srf.set_pos((x, y), "structured")
+    #     #new_srf()
+    #
