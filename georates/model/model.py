@@ -35,6 +35,7 @@ from typing import List, Tuple, Optional
 
 
 class Well:
+
     def __init__(self, well_name: str, location: Tuple[float, float]):
         self.well_name = well_name
         self.location = location
@@ -252,34 +253,54 @@ class VariogramAnalysis:
         self.covmodel.fit_variogram(*self._var_results)
 
 
+# %%
+class WellProperties:
+    def __int__(self, well_list: list[Well]):
+        self.well_list = well_list
+
+    def well_position(self) -> list[float]:
+        well_position = list(self.well_list[0].location)
+        return well_position
+
+    def property_values(self):
+        property_values = self.well_list[1].petro_value
+        return property_values
+
+
+# %%
 class RandomField:
     def __init__(
             self,
-            modelfit: gs.CovModel,
-            position: float,
-            propertyvalues: float,
+            vario_fit: VariogramAnalysis,
+            well_properties: WellProperties,
     ):
-        self.model_fit = None
-        self.modelfit = modelfit
-        self.position = position
-        self.propertyvalues = propertyvalues
+        #self.vario_analysis = None
+        self.vario_fit = vario_fit
+        self.well_properties = well_properties
 
     @property
-    def _crf(self) -> gs.Krige:
+    def _krige(self) -> gs.krige.Krige:
         # if self.__crf is None:
-        self.__crf = gs.Krige(self.model_fit, cond_pos=self.position,
-                                  cond_val=self.propertyvalues)
-        return self.__crf
+        self.__krige = gs.Krige(self.vario_fit, cond_pos = self.well_properties.well_position(),
+                                cond_val = self.well_properties.property_values()[:])
+        return self.__krige
 
-    # def create_random_field(self):
-    #     wells = self.new_wells
-    #     position = wells
-    #
-    #
-    #
-    #
-    #     #krige = gs.Krige(model, cond_pos=pos, cond_val=new_values)
-    #     #new_srf = gs.CondSRF(krige)
-    #     #new_srf.set_pos((x, y), "structured")
-    #     #new_srf()
-    #
+    def generate_crf(self) -> gs.CondSRF:
+        new_crf = gs.CondSRF(self._krige)
+        new_crf.set_pos(*self.well_properties.well_position(), 'structured')
+        return new_crf
+
+# cond_pos se refiere a crear
+
+# def create_random_field(self):
+#     wells = self.new_wells
+#     position = wells
+#
+#
+#
+#
+#     #krige = gs.Krige(model, cond_pos=pos, cond_val=new_values)
+#     #new_srf = gs.CondSRF(krige)
+#     #new_srf.set_pos((x, y), "structured")
+#     #new_srf()
+#
