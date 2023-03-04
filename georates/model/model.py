@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from matplotlib.image import AxesImage
 import gstools as gs
 from typing import List, Tuple, Optional, Any
@@ -32,6 +33,7 @@ from typing import List, Tuple, Optional, Any
 # - Mypy
 
 # Create a well class
+from pandas import DataFrame
 
 
 class Well:
@@ -198,6 +200,25 @@ class VariogramAnalysis:
         else:
             return self._covmodel
 
+    def well_features(self) -> pd.DataFrame:
+        df_wells = pd.DataFrame({
+            'x_coord': [well.location[0] for well in self.wells],
+            'y_coord': [well.location[1] for well in self.wells],
+            'petro_value': [well.petro_value for well in self.wells]
+        })
+        return df_wells
+
+    def _calculate_variogram(self) -> Tuple[np.ndarray, np.ndarray]:
+        df = self.well_features()
+        bin_center, dir_vario = gs.vario_estimate(
+            [df.x_coord, df.y_coord],
+            df.petro_value,
+            direction=gs.rotated_main_axes(dim=self.dim, angles=self.angle),
+            angles_tol=self.angles_tol,
+            bandwidth=self.bandwidth
+        )
+        return bin_center, dir_vario
+
     @covmodel.setter
     def covmodel(self, covmodel: gs.CovModel):
         self._covmodel = covmodel
@@ -213,28 +234,6 @@ class VariogramAnalysis:
         if self.__var_results is None:
             self.__var_results = self._calculate_variogram()
         return self.__var_results
-
-    def well_features(self) -> tuple[list[list[float]], list[Optional[float]]]:
-        x = []
-        y = []
-        vals = []
-        for well in self.wells:
-            x.append(well.location[0])
-            y.append(well.location[1])
-            vals.append(well.petro_value)
-
-        pos = [x, y]
-        return pos, vals
-
-    def _calculate_variogram(self) -> Tuple[np.ndarray, np.ndarray]:
-        bin_center, dir_vario = gs.vario_estimate(
-            self.well_features()[0],
-            *self.well_features()[1],
-            direction=gs.rotated_main_axes(dim=self.dim, angles=self.angle),
-            angles_tol=self.angles_tol,
-            bandwidth=self.bandwidth
-        )
-        return bin_center, dir_vario
 
     def plot_variogram(self, plot_model=False, show_plot=False):
         bin_center, dir_vario = self._var_results
@@ -276,21 +275,19 @@ class RandomField:
             well_properties: VariogramAnalysis
     ):
         #Call methods from VariogramAnalysis
-        self.vario_fit = vario_fit
-        self.vario_fit.fit_covmodel()
-        self.well_properties = well_properties
-        self.well_properties.well_features()
+        self.vario_fit = VariogramAnalysis.fit_covmodel
+        self.well_properties = VariogramAnalysis.well_features
 
     @property
     def _krige(self) -> gs.krige.Krige:
         # if self.__crf is None:
-        self.__krige = gs.Krige(self.vario_fit, cond_pos = self.well_properties[:0],
-                                cond_val = self.well_properties[:1])
+        self.__krige = gs.Krige(self.vario_fit, cond_pos = [self.well_properties[:, 0], self.well_properties[:, 1]],
+                                cond_val = self.well_properties[:, 2])
         return self.__krige
 
     def generate_crf(self) -> gs.CondSRF:
         new_crf = gs.CondSRF(self._krige)
-        new_crf.set_pos(*self.well_properties[:1], 'structured')
+        new_crf.set_pos((self.well_properties[:, 0], self.well_properties[:, 1]), 'structured')
         return new_crf
 
 # cond_pos se refiere a crear
