@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.image import AxesImage
 import gstools as gs
-from typing import List, Tuple, Optional, Any
-
+from typing import List, Tuple, Optional, Any, Union, Callable
 
 # %% Creation of synthetic field
 
@@ -154,21 +153,30 @@ class WellGenerator:
         self.field = field
         self.seed = seed
 
-    def generate_new_vertical_wells(self, n_wells: int) -> List[Well]:
+    def generate_new_vertical_wells(self, n_wells: int) -> list[Well]:
         rng = np.random.default_rng(self.seed)
         min_loc, max_loc = self.field.limits
 
         x_new = rng.integers(min_loc, max_loc, n_wells)
         y_new = rng.integers(min_loc, max_loc, n_wells)
-
         new_wells = []
+
+        # wells_data = {'well_name': [], 'x_coord': [], 'y_coord': [], 'petro_value': []}
+
         for i, (xi, yi) in enumerate(zip(x_new, y_new)):
             field_value = self.field.get_field_value_with_position((xi, yi))
             field_value = field_value if field_value >= 0 else 0
             well_name = f"well_{i}"
+
+            # wells_data['well_name'].append(well_name)
+            # wells_data['x_coord'].append(xi)
+            # wells_data['y_coord'].append(yi)
+            # wells_data['petro_value'].append(field_value)
+
             well = Well(well_name, (xi, yi))
             well.petro_value = field_value
             new_wells.append(well)
+        # new_wells_df = pd.DataFrame(wells_data)
 
         return new_wells
 
@@ -200,19 +208,32 @@ class VariogramAnalysis:
         else:
             return self._covmodel
 
-    def well_features(self) -> pd.DataFrame:
-        df_wells = pd.DataFrame({
-            'x_coord': [well.location[0] for well in self.wells],
-            'y_coord': [well.location[1] for well in self.wells],
-            'petro_value': [well.petro_value for well in self.wells]
-        })
-        return df_wells
+    #
+    # def well_features(self) -> pd.DataFrame:
+    #     df_wells = pd.DataFrame({
+    #         'x_coord': [well.location[0] for well in self.wells],
+    #         'y_coord': [well.location[1] for well in self.wells],
+    #         'petro_value': [well.petro_value for well in self.wells]
+    #     })
+    #     return df_wells
+
+    def well_features(self) -> tuple[list[list[float]], list[Optional[float]]]:
+        x = []
+        y = []
+        petro_value = []
+
+        [x.append(well.location[0]) for well in self.wells],
+        [y.append(well.location[1]) for well in self.wells],
+        [petro_value.append(well.petro_value) for well in self.wells],
+        pos = [x, y]
+
+        return pos, petro_value
 
     def _calculate_variogram(self) -> Tuple[np.ndarray, np.ndarray]:
-        df = self.well_features()
+        pos, petro_value = self.well_features()
         bin_center, dir_vario = gs.vario_estimate(
-            [df.x_coord, df.y_coord],
-            df.petro_value,
+            pos,
+            petro_value,
             direction=gs.rotated_main_axes(dim=self.dim, angles=self.angle),
             angles_tol=self.angles_tol,
             bandwidth=self.bandwidth
@@ -253,7 +274,7 @@ class VariogramAnalysis:
         self.covmodel.fit_variogram(*self._var_results)
 
 
-#%%
+# %%
 # class WellProperties:
 #     def __int__(self, well_list: list[Well]):
 #         self.well_list = well_list
@@ -266,29 +287,31 @@ class VariogramAnalysis:
 #         property_values = self.well_list[1].petro_value
 #         return property_values
 
-
-# %%
 class RandomField:
     def __init__(
             self,
-            vario_fit: VariogramAnalysis,
-            well_properties: VariogramAnalysis
+            vario_fit: VariogramAnalysis.fit_covmodel,
+            well_properties: VariogramAnalysis.well_features
     ):
-        #Call methods from VariogramAnalysis
-        self.vario_fit = VariogramAnalysis.fit_covmodel
-        self.well_properties = VariogramAnalysis.well_features
+        # Call methods from VariogramAnalysis
+        self.vario_fit = vario_fit
+        self.well_properties = well_properties
 
     @property
     def _krige(self) -> gs.krige.Krige:
+        pos, petro_value = self.well_properties
         # if self.__crf is None:
-        self.__krige = gs.Krige(self.vario_fit, cond_pos = [self.well_properties[:, 0], self.well_properties[:, 1]],
-                                cond_val = self.well_properties[:, 2])
-        return self.__krige
+        krige = gs.Krige(self.vario_fit, cond_pos= pos,
+                         cond_val=petro_value)
+        return krige
 
     def generate_crf(self) -> gs.CondSRF:
+        pos, petro_value = self.well_properties
         new_crf = gs.CondSRF(self._krige)
-        new_crf.set_pos((self.well_properties[:, 0], self.well_properties[:, 1]), 'structured')
+        new_crf.set_pos(pos, 'structured')
         return new_crf
+
+# %%
 
 # cond_pos se refiere a crear
 

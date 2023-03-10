@@ -1,5 +1,7 @@
 from math import radians
 import gstools as gs
+import pandas as pd
+
 from georates.model.model import Well, SyntheticField, WellGenerator, VariogramAnalysis, RandomField
 import matplotlib.pyplot as plt
 import numpy as np
@@ -38,6 +40,7 @@ vario_analysis.plot_variogram(plot_model=True)
 plt.show()
 
 #%%Create conditional random field
+
 crf = RandomField(vario_analysis, wells)
 crf.generate_crf()
 # crf.plot_model()
