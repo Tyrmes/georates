@@ -84,15 +84,15 @@ class SyntheticField:
         self.mean = mean
         self.trunc_limits = trunc_limits
         # Private attributes
-        self.__xy: Optional[Tuple[np.ndarray, np.ndarray]] = None
+        self._xy: Optional[Tuple[np.ndarray, np.ndarray]] = None
         self.__srf: Optional[gs.SRF] = None
         self._field: Optional[np.ndarray] = None
 
     @property
-    def _xy(self) -> Tuple[np.ndarray, np.ndarray]:
-        if self.__xy is None:
-            self.__xy = self._generate_xy()
-        return self.__xy
+    def xy(self) -> Tuple[np.ndarray, np.ndarray]:
+        if self._xy is None:
+            self._xy = self._generate_xy()
+        return self._xy
 
     @property
     def field(self) -> np.ndarray:
@@ -256,13 +256,20 @@ class RandomField:
     def __init__(
             self,
             modelfit: gs.CovModel,
-            position: float,
-            propertyvalues: float,
+            wells: List[Well],
+            xy: Tuple[np.ndarray, np.ndarray]
     ):
-        self.model_fit = None
+        """
+
+        :param modelfit: user input
+        :param wells: since the well list is obtained for the user in previous steps,
+        i believe it would be easier that the user inputs the well list here again
+        :param xy: in the case of the xy values generated in the class Synthetic field, since they are
+        required here again, i redefine the property to be public to allow the user to input the values here
+        """
         self.modelfit = modelfit
-        self.position = position
-        self.propertyvalues = propertyvalues
+        self.wells = wells
+        self.xy = xy
 
     @property
     def _crf(self) -> gs.Krige:
@@ -271,7 +278,22 @@ class RandomField:
                                   cond_val=self.propertyvalues)
         return self.__crf
 
-    # def create_random_field(self):
+    def create_random_field(self):
+        newx = []
+        newy = []
+        vals = []
+        for well in self.wells:
+            newx.append(well.location[0])
+            newy.append(well.location[1])
+            vals.append(well.petro_value)
+
+        pos = [newx, newy]
+        x , y = self.xy
+
+        krige = gs.Krige(self.modelfit, cond_pos=pos, cond_val = vals)
+        new_srf = gs.CondSRF(krige)
+        new_srf.set_pos((x,y), "structured")
+        return new_srf()
     #     wells = self.new_wells
     #     position = wells
     #

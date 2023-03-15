@@ -77,7 +77,9 @@ ax_3.scatter(bin_center, dir_vario[0], label="Empirical semivariogram")
 ax_3.scatter(bin_center, dir_vario[1], label="Empirical semivariogram 2")
 model_fit.plot("vario_axis", axis=0, ax=ax_3, label="fit on axis 0")
 model_fit.plot("vario_axis", axis=1, ax=ax_3, label="fit on axis 1")
-plt.show()
+plt.show()\
+#%%
+print(srf)
 #%%
 # Plot the fitting model
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
@@ -92,6 +94,8 @@ ax1_im = ax1.imshow(
     extent=[0, 100, 0, 100],
     cmap="viridis",
 )
+fig.show()
+#%%
 ax1.set_title("Original Field")
 ax2.scatter(x=df_wells[x_col], y=df_wells[y_col], s=5, c="k")
 ax2_im = ax2.imshow(
